@@ -4,7 +4,7 @@ cache:
   paths:
   - node_modules/
 
-stages:
+stages: ## jobs
   - build_dev
   - push_dev
   - deploy_dev
