@@ -1,0 +1,50 @@
+cache:
+  untracked: true
+  key: "$CI_BUILD_REF_NAME"
+  paths:
+  - node_modules/
+
+stages:
+  - build_dev
+  - push_dev
+  - deploy_dev
+
+after_script:
+- echo end
+build_dev:
+  stage: build_dev
+  only:
+  - dev
+  tags:
+  - k8s-node ##触发打包的runner进行打包。首先要注册特定的runner
+  script:
+  - npm set registry https://registry.npm.taobao.org
+  - npm install  --unsafe-perm=true --allow-root
+  - npm run build --unsafe-perm=true --allow-root
+
+  artifacts:
+    expire_in: 2 days
+    paths:
+    - dist ##跨pipeline 传递目录和文件需要缓存
+    
+push_dev:
+  stage: push_dev
+  only:
+  - dev
+  tags:
+  - k8s-shell ##触发推送镜像runner
+  script:
+  - sudo docker login 
+  - sudo docker build 
+  - sudo docker tag 
+  - sudo docker push 
+  - sudo docker rmi 
+
+deploy_dev:
+  stage: deploy_dev
+  only:
+  - dev
+  tags:
+  - k8s-shell
+  script:
+  - curl ##触发构建的钩子
